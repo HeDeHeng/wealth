@@ -84,6 +84,7 @@ contract Crowdsale {
     mapping(address => uint256) public allBalanceOf;//用户现在总的ETH数量
     mapping(uint256 => address) public noToAddress;//用户现在总的ETH数量
     mapping(address => AddressData) public addressDataOf;
+    mapping(address => AddressVipPerformance) public addressVipPerformanceOf;
     mapping(uint => address) public performanceTopList;
     mapping(uint => address) public luckTopList;
     
@@ -97,20 +98,23 @@ contract Crowdsale {
             uint sonAddressNum; //下级数量
             uint performance; // 业绩
             uint directInvitPerformance;//直推奖
-            uint littleVip1Performance;//小区的业绩
-            uint littleVip2Performance;//小区的业绩
-            uint littleVip3Performance;//小区的业绩
-            uint littleVip4Performance;//小区的业绩
             uint topPerformance;//大区的业绩
-            uint vip_performance;  // VIP的业绩
-            uint top1_performance; // 委托的投票代表
-            uint top4_performance;   // 投票选择的提案索引号
             uint luck30;///幸运30名的奖励
             uint roundIntoPerformance;//当前局入金的量
             uint luckDayPerformance;//每天幸运奖的奖励数量
             uint freezeBalance;//冻结的奖励
             uint freezeAllBalance;//冻结的总量
         }
+    struct AddressVipPerformance{
+            uint littleVip1Performance;//小区的业绩
+            uint littleVip2Performance;//小区的业绩
+            uint littleVip3Performance;//小区的业绩
+            uint littleVip4Performance;//小区的业绩
+            uint vipPerformance;  // VIP的业绩
+            uint top1Performance; // 委托的投票代表
+            uint top4Performance;   // 投票选择的提案索引号
+    }
+
     /**
     * 事件可以用来跟踪信息
     **/
@@ -221,8 +225,9 @@ contract Crowdsale {
                     addressDataOf[noToAddress[i]].luckDayPerformance += luckDayBlance/addressCount;
                 }
             }else{//如果超过300人的话完全随机
+            uint addreNumberCach ;
                 for(uint j = 1;j < 300;j++){
-                    uint addreNumberCach = rand(300);//随机出来一个地址
+                    addreNumberCach = rand(300);//随机出来一个地址
                     balanceOf[noToAddress[addreNumberCach]] += luckDayBlance/300;
                     addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance += luckDayBlance/300;//给用户添加幸运奖记录
                 }
@@ -238,7 +243,7 @@ contract Crowdsale {
     //每天解冻
     function dayUnfreeze() {
         if (beneficiary == msg.sender) {
-            uint addressCach;
+            address addressCach;
             uint unfreezeNum;
             for (uint16 i = 1; i < addressCount; i++) {                
                 addressCach = noToAddress[i];
@@ -256,16 +261,15 @@ contract Crowdsale {
                 //每个地址有一个id，通过随机id给id对应的地址添加幸运奖记录
                 addressDataOf[noToAddress[i]].luckDayPerformance += luckDayBlance/addressCount;
                 }
-
             }
         }
     }
 
     //更新业绩
-    private function updatePerformance(address myAddress,uint amount) {
+    function updatePerformance(address myAddress,uint amount) private {
         addressDataOf[myAddress].performance += amount;
 
-        if(addressDataOf[myAddress].no == 2 || addressDataOf[myAddress].no == 0){
+        if(addressDataOf[myAddress].no == 1 || addressDataOf[myAddress].no == 0){
             return;
         }else{
             updatePerformance(addressDataOf[myAddress].pAddress,amount);
@@ -273,7 +277,7 @@ contract Crowdsale {
     }
 
     //更新入金top列表
-    private function updataTopList(address updateAddress,uint updatePerformance){
+    function updataTopList(address updateAddress,uint updatePerformance) private {
         if(updatePerformance < addressDataOf[performanceTopList[9]].performance){///是否上了排行版
             return;
         }
@@ -287,7 +291,7 @@ contract Crowdsale {
             performanceTopList[7] = performanceTopList[6];
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[0] = updatePerformance;
+            performanceTopList[0] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[0]].performance && updatePerformance >= addressDataOf[performanceTopList[1]].performance){
             performanceTopList[2] = performanceTopList[1];
@@ -298,7 +302,7 @@ contract Crowdsale {
             performanceTopList[7] = performanceTopList[6];
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[1] = updatePerformance;
+            performanceTopList[1] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[1]].performance && updatePerformance >= addressDataOf[performanceTopList[2]].performance){
             performanceTopList[3] = performanceTopList[2];
@@ -308,7 +312,7 @@ contract Crowdsale {
             performanceTopList[7] = performanceTopList[6];
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[2] = updatePerformance;
+            performanceTopList[2] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[2]].performance && updatePerformance >= addressDataOf[performanceTopList[3]].performance){
             performanceTopList[4] = performanceTopList[3];
@@ -317,7 +321,7 @@ contract Crowdsale {
             performanceTopList[7] = performanceTopList[6];
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[3] = updatePerformance;
+            performanceTopList[3] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[3]].performance && updatePerformance >= addressDataOf[performanceTopList[4]].performance){
             performanceTopList[5] = performanceTopList[4];
@@ -325,88 +329,88 @@ contract Crowdsale {
             performanceTopList[7] = performanceTopList[6];
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[4] = updatePerformance;
+            performanceTopList[4] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[4]].performance && updatePerformance >= addressDataOf[performanceTopList[5]].performance){
             performanceTopList[6] = performanceTopList[5];
             performanceTopList[7] = performanceTopList[6];
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[5] = updatePerformance;
+            performanceTopList[5] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[5]].performance && updatePerformance >= addressDataOf[performanceTopList[6]].performance){
             performanceTopList[7] = performanceTopList[6];
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[6] = updatePerformance;
+            performanceTopList[6] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[6]].performance && updatePerformance >= addressDataOf[performanceTopList[7]].performance){
             performanceTopList[8] = performanceTopList[7];
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[7] = updatePerformance;
+            performanceTopList[7] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[7]].performance && updatePerformance >= addressDataOf[performanceTopList[8]].performance){
             performanceTopList[9] = performanceTopList[8];
-            performanceTopList[8] = updatePerformance;
+            performanceTopList[8] = updateAddress;
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[8]].performance && updatePerformance >= addressDataOf[performanceTopList[9]].performance){
-            performanceTopList[9] = updatePerformance;
+            performanceTopList[9] = updateAddress;
             return;
         }
     }
 
     //升级更新用户大校区的业绩
-    private function updateVipAndPerformance(address pAddress,address myAddress){
+    function updateVipAndPerformance(address pAddress,address myAddress) private {
         //更新最大的业绩
         if(addressDataOf[myAddress].performance > addressDataOf[pAddress].topPerformance){
             addressDataOf[pAddress].topPerformance = addressDataOf[myAddress].performance;
         }
         //更新四个等级的的小区业绩
         //vip1
-        if((addressDataOf[myAddress].performance < vip1Condition  && addressDataOf[myAddress].performance > addressDataOf[pAddress].littleVip1Performance) ||
-        (addressDataOf[myAddress].performance >= vip1Condition && addressDataOf[myAddress].performance < addressDataOf[pAddress].littleVip1Performance)){
-            addressDataOf[pAddress].littleVip1Performance = addressDataOf[myAddress].performance;
+        if((addressDataOf[myAddress].performance < vip1Condition  && addressDataOf[myAddress].performance > addressVipPerformanceOf[pAddress].littleVip1Performance) ||
+        (addressDataOf[myAddress].performance >= vip1Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip1Performance)){
+            addressVipPerformanceOf[pAddress].littleVip1Performance = addressDataOf[myAddress].performance;
         }
         //vip2
-        if((addressDataOf[myAddress].performance < vip2Condition  && addressDataOf[myAddress].performance > addressDataOf[pAddress].littleVip2Performance) ||
-        (addressDataOf[myAddress].performance >= vip2Condition && addressDataOf[myAddress].performance < addressDataOf[pAddress].littleVip2Performance)){
-            addressDataOf[pAddress].littleVip2Performance = addressDataOf[myAddress].performance;
+        if((addressDataOf[myAddress].performance < vip2Condition  && addressDataOf[myAddress].performance > addressVipPerformanceOf[pAddress].littleVip2Performance) ||
+        (addressDataOf[myAddress].performance >= vip2Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip2Performance)){
+            addressVipPerformanceOf[pAddress].littleVip2Performance = addressDataOf[myAddress].performance;
         }
         //vip3
-        if((addressDataOf[myAddress].performance < vip3Condition  && addressDataOf[myAddress].performance > addressDataOf[pAddress].littleVip3Performance) ||
-        (addressDataOf[myAddress].performance >= vip3Condition && addressDataOf[myAddress].performance < addressDataOf[pAddress].littleVip3Performance)){
-            addressDataOf[pAddress].littleVip3Performance = addressDataOf[myAddress].performance;
+        if((addressDataOf[myAddress].performance < vip3Condition  && addressDataOf[myAddress].performance > addressVipPerformanceOf[pAddress].littleVip3Performance) ||
+        (addressDataOf[myAddress].performance >= vip3Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip3Performance)){
+            addressVipPerformanceOf[pAddress].littleVip3Performance = addressDataOf[myAddress].performance;
         }
         //vip4
-        if((addressDataOf[myAddress].performance < vip4Condition  && addressDataOf[myAddress].performance > addressDataOf[pAddress].littleVip4Performance) ||
-        (addressDataOf[myAddress].performance >= vip4Condition && addressDataOf[myAddress].performance < addressDataOf[pAddress].littleVip4Performance)){
-            addressDataOf[pAddress].littleVip4Performance = addressDataOf[myAddress].performance;
+        if((addressDataOf[myAddress].performance < vip4Condition  && addressDataOf[myAddress].performance > addressVipPerformanceOf[pAddress].littleVip4Performance) ||
+        (addressDataOf[myAddress].performance >= vip4Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip4Performance)){
+            addressVipPerformanceOf[pAddress].littleVip4Performance = addressDataOf[myAddress].performance;
         }
 
         //用户升级
         uint oldVip = 0;
         if(addressDataOf[pAddress].vip < 1){//VIP1
-            if(addressDataOf[pAddress].littleVip1Performance >= vip1Condition && addressDataOf[pAddress].performance - addressDataOf[pAddress].littleVip1Performance >= vip1UpCondition){
+            if(addressVipPerformanceOf[pAddress].littleVip1Performance >= vip1Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip1Performance >= vip1UpCondition){
                 addressDataOf[pAddress].vip = 1;
                 vip1Count ++;//统计
             }
         }
         if(addressDataOf[pAddress].vip < 2){//VIP2
-            if(addressDataOf[pAddress].littleVip2Performance >= vip2Condition && addressDataOf[pAddress].performance - addressDataOf[pAddress].littleVip2Performance >= vip2UpCondition){
+            if(addressVipPerformanceOf[pAddress].littleVip2Performance >= vip2Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip2Performance >= vip2UpCondition){
                 oldVip = addressDataOf[pAddress].vip;
                 addressDataOf[pAddress].vip = 2;
                 vip2Count ++;//统计
             }
         }
         if(addressDataOf[pAddress].vip < 3){//VIP3
-            if(addressDataOf[pAddress].littleVip3Performance >= vip3Condition && addressDataOf[pAddress].performance - addressDataOf[pAddress].littleVip3Performance >= vip3UpCondition){
+            if(addressVipPerformanceOf[pAddress].littleVip3Performance >= vip3Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip3Performance >= vip3UpCondition){
                 oldVip = addressDataOf[pAddress].vip;
                 addressDataOf[pAddress].vip = 3;
                 vip3Count ++;//统计
             }
         }
         if(addressDataOf[pAddress].vip < 4){//VIP4
-            if(addressDataOf[pAddress].littleVip4Performance >= vip4Condition && addressDataOf[pAddress].performance - addressDataOf[pAddress].littleVip4Performance >= vip4UpCondition){
+            if(addressVipPerformanceOf[pAddress].littleVip4Performance >= vip4Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip4Performance >= vip4UpCondition){
                 oldVip = addressDataOf[pAddress].vip;
                 addressDataOf[pAddress].vip = 4;
                 vip4Count ++;//统计
@@ -422,7 +426,7 @@ contract Crowdsale {
             }
         }
 
-        if(addressDataOf[upAddress].no == 2 || addressDataOf[upAddress].no == 0){
+        if(addressDataOf[pAddress].no == 1 || addressDataOf[pAddress].no == 0){
             return;
         }else{
             updateVipAndPerformance(addressDataOf[pAddress].pAddress,pAddress);
@@ -458,8 +462,9 @@ contract Crowdsale {
                     addressDataOf[noToAddress[i]].luckDayPerformance += luckDayBlance/addressCount;//给用户添加幸运奖记录
                 }
             }else{//如果超过300人的话完全随机
+            uint addreNumberCach;
                 for(uint j = 1;j < 300;j++){
-                    uint addreNumberCach = rand(300);//随机出来一个地址
+                    addreNumberCach = rand(300);//随机出来一个地址
                     balanceOf[noToAddress[addreNumberCach]] += luckDayBlance/addressCount;
                     addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance += luckDayBlance/addressCount;//给用户添加幸运奖记录
                 }
