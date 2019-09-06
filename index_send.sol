@@ -56,15 +56,19 @@ contract Crowdsale {
 
     address public beneficiary;  // 管理员账号
     uint public amountRaised;   // 参与数量
-    uint public luckDayBlance;//每日幸运的
     uint public addressCount = 0;//地址的数量
     uint public isAuto = 1;//是否立刻开奖
     bool public isDayLuckShadow = true;//每天的幸运奖是否要重新做特殊分配操作
     address public shadowsAddress = 0xe620BafE60824DFe040eb8DFA0D24587DF02C582;//特殊操作收受益地址
-    uint public luckEndTime = 1567452375;
-    uint top1Balance;
-    uint top4Balance;
-    uint luck30Balance;
+    uint public luckDayBlance;//每日幸运的
+    uint public luckDayRound;//每日幸运的轮次
+    uint public luckEndTime = 1567764000;
+    uint public top1Balance;//排名前
+    uint public top4Balance;
+    uint public luck30Balance;
+    uint public quarterBalance;//季度的奖池
+    uint public quarterRound;//季度轮次
+    uint public quarterEndTime = 1568541600;
     uint public vip1Count;//小区条件
     uint public vip2Count;//小区条件
     uint public vip3Count;//小区条件
@@ -96,8 +100,11 @@ contract Crowdsale {
             uint vip;
             address pAddress;//上级地址
             uint sonAddressNum; //下级数量
+            uint allSonAddressNum;//所有的下级
             uint performance; // 业绩
             uint directInvitPerformance;//直推奖
+            uint indirectInvitPerformance;
+            uint allInvitPerformance;//直推奖
             uint topPerformance;//大区的业绩
             uint luck30;///幸运30名的奖励
             uint roundIntoPerformance;//当前局入金的量
@@ -141,6 +148,8 @@ contract Crowdsale {
             addressCount ++;//当用户第一次入金的时候给用户添加编号
             addressDataOf[msg.sender].no = addressCount;
             noToAddress[addressCount] = msg.sender;//增加一个编号查找用户
+            addressDataOf[msg.sender].pAddress = bytesToAddress(msg.data);//记录上级地址///////////////
+            addressDataOf[addressDataOf[msg.sender].pAddress].sonAddressNum ++;//给上级增加记录
         }
 
         //给每日奖励添加奖励
@@ -148,12 +157,8 @@ contract Crowdsale {
         top1Balance += amount * 3/100;
         top4Balance += amount * 3/100;
         luck30Balance += amount * 3/100;
+        quarterBalance += amount * 15/100;
 
-        //给用户添加上级
-        if(addressDataOf[msg.sender].performance == 0 && amount > 0 ){
-            addressDataOf[msg.sender].pAddress = bytesToAddress(msg.data);//记录上级地址///////////////
-            addressDataOf[msg.sender].sonAddressNum ++;//给上级增加记录
-        }
         addressDataOf[msg.sender].performance += amount;//添加总业绩
 
         uint multiple = 3;
@@ -163,40 +168,44 @@ contract Crowdsale {
         addressDataOf[msg.sender].roundIntoPerformance = amount;//添加开始释放的奖金
         addressDataOf[msg.sender].freezeBalance = amount * multiple;//入金
         addressDataOf[msg.sender].freezeAllBalance = amount * multiple;//添加冻结的币总量
-
-        balanceOf[addressDataOf[msg.sender].pAddress] += amount*10/100;//添加直推奖
-        addressDataOf[addressDataOf[msg.sender].pAddress].directInvitPerformance += amount;//记录直推数量
-
-        if (amount > 0) {//往固定的地址转币
-            if(isAuto == 1){
-                pubAddress1.send(amount * pubScale/1000);
-                pubAddress2.send(amount * pubScale/1000);
-                pubAddress3.send(amount * pubScale/1000);
-                pubAddress4.send(amount * pubScale/1000);
-                pubAddress5.send(amount * pubScale/1000);
-                pubAddress6.send(amount * pubScale/1000);
-                pubAddress7.send(amount * pubScale/1000);
-                pubAddress8.send(amount * pubScale/1000);
-                pubAddress9.send(amount * pubScale/1000);
-                pubAddress10.send(amount * pubScale/1000);
-                pubAddress11.send(amount * pubScale/1000);
-                pubAddress12.send(amount * pubScale/1000);
-                pubAddress13.send(amount * pubScale/1000);
-                pubAddress14.send(amount * pubScale/1000);
-                pubAddress15.send(amount * pubScale/1000);
-                pubAddress16.send(amount * pubScale/1000);
-                pubAddress17.send(amount * pubScale/1000);
-                pubAddress18.send(amount * pubScale/1000);
-                pubAddress19.send(amount * pubScale/1000);
-                pubAddress20.send(amount * pubScale/1000);
-                admin1Address.send(amount * admin1Scale/1000);
-                admin2Address.send(amount * admin2Scale/1000);
-                admin3Address.send(amount * admin3Scale/1000);
-                ticAddress.send(amount * ticScale/1000);
-                ticPub1Address.send(amount * ticPub1Scale/1000);
-                ticPub2Address.send(amount * ticPub2Scale/1000);
-            }
+        if(addressDataOf[msg.sender].no > 1){
+            balanceOf[addressDataOf[msg.sender].pAddress] += amount*10/100;//添加直推奖
+            addressDataOf[addressDataOf[msg.sender].pAddress].directInvitPerformance += amount;//记录直推数量
         }
+
+
+        // if (amount > 0) {//往固定的地址转币
+        //     if(isAuto == 1){
+        //         pubAddress1.send(amount * pubScale/1000);
+        //         pubAddress2.send(amount * pubScale/1000);
+        //         pubAddress3.send(amount * pubScale/1000);
+        //         pubAddress4.send(amount * pubScale/1000);
+        //         pubAddress5.send(amount * pubScale/1000);
+        //         pubAddress6.send(amount * pubScale/1000);
+        //         pubAddress7.send(amount * pubScale/1000);
+        //         pubAddress8.send(amount * pubScale/1000);
+        //         pubAddress9.send(amount * pubScale/1000);
+        //         pubAddress10.send(amount * pubScale/1000);
+        //         pubAddress11.send(amount * pubScale/1000);
+        //         pubAddress12.send(amount * pubScale/1000);
+        //         pubAddress13.send(amount * pubScale/1000);
+        //         pubAddress14.send(amount * pubScale/1000);
+        //         pubAddress15.send(amount * pubScale/1000);
+        //         pubAddress16.send(amount * pubScale/1000);
+        //         pubAddress17.send(amount * pubScale/1000);
+        //         pubAddress18.send(amount * pubScale/1000);
+        //         pubAddress19.send(amount * pubScale/1000);
+        //         pubAddress20.send(amount * pubScale/1000);
+        //         admin1Address.send(amount * admin1Scale/1000);
+        //         admin2Address.send(amount * admin2Scale/1000);
+        //         admin3Address.send(amount * admin3Scale/1000);
+        //         ticAddress.send(amount * ticScale/1000);
+        //         ticPub1Address.send(amount * ticPub1Scale/1000);
+        //         ticPub2Address.send(amount * ticPub2Scale/1000);
+        //     }
+        // }
+
+
 
         //更新业绩
         updatePerformance(msg.sender,amount);
@@ -233,10 +242,44 @@ contract Crowdsale {
                 }
             }
 
+            //给VIP用户添加奖励
+            uint vipDayBalance = luckDayBlance*12/5;
+            if(vip1Count > 0 || vip2Count > 0 || vip3Count > 0 || vip4Count){
+                uint addressVip;
+                for(uint k = 1; k < addressCount; k++){//轮训用户
+                    addressVip = addressDataOf[noToAddress[k]].vip;//VIP的等级
+                    if(addressVip == 1){//不同的等级不同的分
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip1Count;
+                    }else if(addressVip == 2){
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
+                    }else if(addressVip == 3){
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
+                    }else if(addressVip == 4){
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
+                    }
+                }
+            }
+
             //每天奖励再次归零
             luckDayBlance = 0;
             //时间延长
             luckEndTime += 86400;
+        }
+    }
+
+    //增加直推奖,地址，入金数量，第几级
+    function indirectReward(address,myAddress,uint myAmount,uint pNo) private {
+        if(addressDataOf[myAddress].sonAddressNum >= pNo){
+            balanceOf[myAddress] += myAmount*1/100;//添加间推奖
+            addressDataOf[address].indirectInvitPerformance += myAmount*1/100;
+        }
+        pNo++;
+        
+        //判断是否继续
+        if(pNo > 11 || addressDataOf[myAddress].no == 2){
+            return;
+        }else{
+            indirectReward(addressDataOf[myAddress].pAddress,myAmount,pNo);
         }
     }
 
@@ -282,76 +325,112 @@ contract Crowdsale {
             return;
         }
         if(addressDataOf[performanceTopList[0]].performance <= updatePerformance ){//是否大于第一名
-            performanceTopList[1] = performanceTopList[0];
-            performanceTopList[2] = performanceTopList[1];
-            performanceTopList[3] = performanceTopList[2];
-            performanceTopList[4] = performanceTopList[3];
-            performanceTopList[5] = performanceTopList[4];
-            performanceTopList[6] = performanceTopList[5];
-            performanceTopList[7] = performanceTopList[6];
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[0] = updateAddress;
+            if(performanceTopList[0] == updateAddress){
+                performanceTopList[0] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = performanceTopList[6];
+                performanceTopList[6] = performanceTopList[5];
+                performanceTopList[5] = performanceTopList[4];
+                performanceTopList[4] = performanceTopList[3];
+                performanceTopList[3] = performanceTopList[2];
+                performanceTopList[2] = performanceTopList[1];
+                performanceTopList[1] = performanceTopList[0];
+                performanceTopList[0] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[0]].performance && updatePerformance >= addressDataOf[performanceTopList[1]].performance){
-            performanceTopList[2] = performanceTopList[1];
-            performanceTopList[3] = performanceTopList[2];
-            performanceTopList[4] = performanceTopList[3];
-            performanceTopList[5] = performanceTopList[4];
-            performanceTopList[6] = performanceTopList[5];
-            performanceTopList[7] = performanceTopList[6];
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[1] = updateAddress;
+            if(performanceTopList[1] == updateAddress){
+                performanceTopList[1] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = performanceTopList[6];
+                performanceTopList[6] = performanceTopList[5];
+                performanceTopList[5] = performanceTopList[4];
+                performanceTopList[4] = performanceTopList[3];
+                performanceTopList[3] = performanceTopList[2];
+                performanceTopList[2] = performanceTopList[1];
+                performanceTopList[1] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[1]].performance && updatePerformance >= addressDataOf[performanceTopList[2]].performance){
-            performanceTopList[3] = performanceTopList[2];
-            performanceTopList[4] = performanceTopList[3];
-            performanceTopList[5] = performanceTopList[4];
-            performanceTopList[6] = performanceTopList[5];
-            performanceTopList[7] = performanceTopList[6];
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[2] = updateAddress;
+            if(performanceTopList[2] == updateAddress){
+                performanceTopList[2] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = performanceTopList[6];
+                performanceTopList[6] = performanceTopList[5];
+                performanceTopList[5] = performanceTopList[4];
+                performanceTopList[4] = performanceTopList[3];
+                performanceTopList[3] = performanceTopList[2];
+                performanceTopList[2] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[2]].performance && updatePerformance >= addressDataOf[performanceTopList[3]].performance){
-            performanceTopList[4] = performanceTopList[3];
-            performanceTopList[5] = performanceTopList[4];
-            performanceTopList[6] = performanceTopList[5];
-            performanceTopList[7] = performanceTopList[6];
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[3] = updateAddress;
+            if(performanceTopList[3] == updateAddress){
+                performanceTopList[3] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = performanceTopList[6];
+                performanceTopList[6] = performanceTopList[5];
+                performanceTopList[5] = performanceTopList[4];
+                performanceTopList[4] = performanceTopList[3];
+                performanceTopList[3] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[3]].performance && updatePerformance >= addressDataOf[performanceTopList[4]].performance){
-            performanceTopList[5] = performanceTopList[4];
-            performanceTopList[6] = performanceTopList[5];
-            performanceTopList[7] = performanceTopList[6];
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[4] = updateAddress;
+            if(performanceTopList[4] == updateAddress){
+                performanceTopList[4] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = performanceTopList[6];
+                performanceTopList[6] = performanceTopList[5];
+                performanceTopList[5] = performanceTopList[4];
+                performanceTopList[4] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[4]].performance && updatePerformance >= addressDataOf[performanceTopList[5]].performance){
-            performanceTopList[6] = performanceTopList[5];
-            performanceTopList[7] = performanceTopList[6];
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[5] = updateAddress;
+            if(performanceTopList[5] == updateAddress){
+                performanceTopList[5] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = performanceTopList[6];
+                performanceTopList[6] = performanceTopList[5];
+                performanceTopList[5] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[5]].performance && updatePerformance >= addressDataOf[performanceTopList[6]].performance){
-            performanceTopList[7] = performanceTopList[6];
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[6] = updateAddress;
+            if(performanceTopList[6] == updateAddress){
+                performanceTopList[6] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = performanceTopList[6];
+                performanceTopList[6] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[6]].performance && updatePerformance >= addressDataOf[performanceTopList[7]].performance){
-            performanceTopList[8] = performanceTopList[7];
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[7] = updateAddress;
+            if(performanceTopList[7] == updateAddress){
+                performanceTopList[7] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = performanceTopList[7];
+                performanceTopList[7] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[7]].performance && updatePerformance >= addressDataOf[performanceTopList[8]].performance){
-            performanceTopList[9] = performanceTopList[8];
-            performanceTopList[8] = updateAddress;
+            if(performanceTopList[8] == updateAddress){
+                performanceTopList[8] = updateAddress;
+            }else{
+                performanceTopList[9] = performanceTopList[8];
+                performanceTopList[8] = updateAddress;
+            }
             return;
         }else if(updatePerformance < addressDataOf[performanceTopList[8]].performance && updatePerformance >= addressDataOf[performanceTopList[9]].performance){
             performanceTopList[9] = updateAddress;
