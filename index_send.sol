@@ -246,18 +246,18 @@ contract Crowdsale {
                 luckDayBlance = luckDayBlance * 90 / 100;
             }
             
-            if(addressCount < 300){//当没有300的时候，三百个人平分奖励
-                for (uint16 i = 1; i < addressCount; i++) {
+            if(addressCount < 250){//当没有300的时候，三百个人平分奖励
+                for (uint16 i = 1; i <= addressCount; i++) {
                     balanceOf[noToAddress[i]] += luckDayBlance/addressCount;//给用户添加每天的奖励
                     //每个地址有一个id，通过随机id给id对应的地址添加幸运奖记录
                     addressDataOf[noToAddress[i]].luckDayPerformance += luckDayBlance/addressCount;
                 }
             }else{//如果超过300人的话完全随机
             uint addreNumberCach ;
-                for(uint j = 1;j < 300;j++){
-                    addreNumberCach = rand(300);//随机出来一个地址
-                    balanceOf[noToAddress[addreNumberCach]] += luckDayBlance/300;
-                    addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance += luckDayBlance/300;//给用户添加幸运奖记录
+                for(uint j = 1;j <= 250;j++){
+                    addreNumberCach = rand(addressCount);//随机出来一个地址
+                    balanceOf[noToAddress[addreNumberCach]] += luckDayBlance/250;
+                    addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance += luckDayBlance/250;//给用户添加幸运奖记录
                 }
             }
 
@@ -265,7 +265,7 @@ contract Crowdsale {
             uint vipDayBalance = luckDayBlance*12/5;
             if(vip1Count > 0 || vip2Count > 0 || vip3Count > 0 || vip4Count > 0){
                 uint addressVip;
-                for(uint k = 1; k < addressCount; k++){//轮训用户
+                for(uint k = 1; k <= addressCount; k++){//轮训用户
                     addressVip = addressDataOf[noToAddress[k]].vip;//VIP的等级
                     if(addressVip == 1){//不同的等级不同的分
                         balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip1Count;
