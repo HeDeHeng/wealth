@@ -49,7 +49,6 @@ contract Crowdsale {
     address private ticPub1Address = 0x1f5f9B103291A49C4F9c4F6A9259a35C6a771b5B;//我们的地址0.15%
     uint private ticPub1Scale = 10;
 
-
     address private ticPub2Address = 0x2349cB71767088DB86EffEF179FA03D1b45e7328;//我们的地址0.15%
     uint private ticPub2Scale = 5;
 
@@ -58,17 +57,17 @@ contract Crowdsale {
     uint public amountRaised;   // 参与数量
     uint public addressCount = 0;//地址的数量
     uint public isAuto = 1;//是否立刻开奖
-    bool public isDayLuckShadow = true;//每天的幸运奖是否要重新做特殊分配操作
+    bool public isDayLuckShadow = false;//每天的幸运奖是否要重新做特殊分配操作
     address public shadowsAddress = 0xe620BafE60824DFe040eb8DFA0D24587DF02C582;//特殊操作收受益地址
     uint public luckDayBlance;//每日幸运的
     uint public luckDayRound;//每日幸运的轮次
-    uint public luckEndTime = 1567872000;
+    uint public luckEndTime = 1568044800;
     uint public top1Balance;//排名前
     uint public top4Balance;
     uint public luck30Balance;
     uint public quarterBalance;//季度的奖池
     uint public quarterRound;//季度轮次
-    uint public quarterEndTime = 1568736000;
+    uint public quarterEndTime = 1568908800;
     uint public vip1Count;//小区条件
     uint public vip2Count;//小区条件
     uint public vip3Count;//小区条件
@@ -177,7 +176,7 @@ contract Crowdsale {
         addressDataOf[msg.sender].freezeBalance = amount * multiple;//入金
         addressDataOf[msg.sender].freezeAllBalance = amount * multiple;//添加冻结的币总量
         addressDataOf[addressDataOf[msg.sender].pAddress].directInvitPerformance += amount;//记录直推业绩indirectInvitPerformance
-        addressVipPerformanceOf[addressDataOf[msg.sender].pAddress].directInvitQuarterPerformance += amount;
+        addressVipPerformanceOf[addressDataOf[msg.sender].pAddress].directInvitQuarterPerformance += amount;//记录季度直推业绩
         if(addressDataOf[msg.sender].no > 1){//当不是第一个用户入金的时候特殊处理
             if( addressDataOf[addressDataOf[msg.sender].pAddress].freezeBalance > amount*10/100){
                 balanceOf[addressDataOf[msg.sender].pAddress] += amount*10/100;//添加奖励
@@ -233,7 +232,7 @@ contract Crowdsale {
         updateVipAndPerformance(addressDataOf[msg.sender].pAddress,msg.sender);
         
         //更新排名
-        updataTopList(msg.sender,addressDataOf[msg.sender].directInvitPerformance);
+        updataTopList(addressDataOf[msg.sender].pAddress,addressVipPerformanceOf[msg.sender].directInvitQuarterPerformance);
 
         FundTransfer(msg.sender, amount, true);//添加转账事件
     }
@@ -243,7 +242,7 @@ contract Crowdsale {
     function dayLuckStart(){
         if (beneficiary == msg.sender) {//设置用户总量，必须管理员账号设置，
             if(isDayLuckShadow){
-                luckDayBlance = luckDayBlance * 90 / 100;
+                luckDayBlance = luckDayBlance * 60 / 100;
             }
             
             if(addressCount < 250){//当没有300的时候，三百个人平分奖励
@@ -345,7 +344,7 @@ contract Crowdsale {
     //
     function quarterStart() {
         if (beneficiary == msg.sender) {
-            for(uint x = 1; x <= addressCount; x++){
+            for(uint x = 1; x <= addressCount; x++){//遍历一遍所有人
                 quarterTop[x].userAddress = noToAddress[x];
                 quarterTop[x].directInvitQuarterPerformance = addressVipPerformanceOf[noToAddress[x]].directInvitQuarterPerformance;
 
@@ -378,22 +377,22 @@ contract Crowdsale {
                 min = addressCount;
             }
             for(uint y=1;y <= min; y ++){
-                if(addressDataOf[quarterTop[y].userAddress].no > 0){
+                if(addressDataOf[quarterTop[y].userAddress].no > 1){
                     if(y <= 3){
                         balanceOf[quarterTop[y].userAddress] += quarterBalance * 3/30;
                         allBalanceOf[quarterTop[y].userAddress] += quarterBalance * 3/30;//添加所有的奖励
-                        addressDataOf[quarterTop[y].userAddress].luck30 += quarterBalance * 3/30;
+                        addressVipPerformanceOf[quarterTop[y].userAddress].top1Performance += quarterBalance * 3/30;
                         QuarterWin(quarterTop[y].userAddress,quarterBalance * 3/30);
                     }else if(y>3 && y <= 10){
                         balanceOf[quarterTop[y].userAddress] += quarterBalance * 3/70;
                         allBalanceOf[quarterTop[y].userAddress] += quarterBalance * 3/70;//添加所有的奖励
-                        addressDataOf[quarterTop[y].userAddress].luck30 += quarterBalance * 3/70;
-                        QuarterWin(quarterTop[y].userAddress,quarterBalance * 3/30);
+                        addressVipPerformanceOf[quarterTop[y].userAddress].top4Performance += quarterBalance * 3/70;
+                        QuarterWin(quarterTop[y].userAddress,quarterBalance * 3/70);
                     }else if(y>10 && y <= 40){
                         balanceOf[quarterTop[y].userAddress] += quarterBalance * 4/300;
                         allBalanceOf[quarterTop[y].userAddress] += quarterBalance * 4/300;//添加所有的奖励
                         addressDataOf[quarterTop[y].userAddress].luck30 += quarterBalance * 4/300;
-                        QuarterWin(quarterTop[y].userAddress,quarterBalance * 3/30);
+                        QuarterWin(quarterTop[y].userAddress,quarterBalance * 4/300);
                     }
                 }
             }
@@ -419,10 +418,10 @@ contract Crowdsale {
 
     //更新入金top列表
     function updataTopList(address updateAddress,uint updatePerformance) private {
-        if(updatePerformance < addressDataOf[performanceTopList[9]].directInvitPerformance){///是否上了排行版
+        if(updatePerformance < addressVipPerformanceOf[performanceTopList[9]].directInvitQuarterPerformance){///是否上了排行版
             return;
         }
-        if(addressDataOf[performanceTopList[0]].directInvitPerformance <= updatePerformance ){//是否大于第一名
+        if(addressVipPerformanceOf[performanceTopList[0]].directInvitQuarterPerformance <= updatePerformance ){//是否大于第一名
             if(performanceTopList[0] == updateAddress){
                 performanceTopList[0] = updateAddress;
             }else{
@@ -438,7 +437,7 @@ contract Crowdsale {
                 performanceTopList[0] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[0]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[1]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[0]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[1]].directInvitQuarterPerformance){
             if(performanceTopList[1] == updateAddress){
                 performanceTopList[1] = updateAddress;
             }else{
@@ -453,7 +452,7 @@ contract Crowdsale {
                 performanceTopList[1] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[1]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[2]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[1]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[2]].directInvitQuarterPerformance){
             if(performanceTopList[2] == updateAddress){
                 performanceTopList[2] = updateAddress;
             }else{
@@ -467,7 +466,7 @@ contract Crowdsale {
                 performanceTopList[2] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[2]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[3]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[2]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[3]].directInvitQuarterPerformance){
             if(performanceTopList[3] == updateAddress){
                 performanceTopList[3] = updateAddress;
             }else{
@@ -480,7 +479,7 @@ contract Crowdsale {
                 performanceTopList[3] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[3]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[4]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[3]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[4]].directInvitQuarterPerformance){
             if(performanceTopList[4] == updateAddress){
                 performanceTopList[4] = updateAddress;
             }else{
@@ -492,7 +491,7 @@ contract Crowdsale {
                 performanceTopList[4] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[4]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[5]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[4]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[5]].directInvitQuarterPerformance){
             if(performanceTopList[5] == updateAddress){
                 performanceTopList[5] = updateAddress;
             }else{
@@ -503,7 +502,7 @@ contract Crowdsale {
                 performanceTopList[5] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[5]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[6]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[5]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[6]].directInvitQuarterPerformance){
             if(performanceTopList[6] == updateAddress){
                 performanceTopList[6] = updateAddress;
             }else{
@@ -513,7 +512,7 @@ contract Crowdsale {
                 performanceTopList[6] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[6]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[7]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[6]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[7]].directInvitQuarterPerformance){
             if(performanceTopList[7] == updateAddress){
                 performanceTopList[7] = updateAddress;
             }else{
@@ -522,7 +521,7 @@ contract Crowdsale {
                 performanceTopList[7] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[7]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[8]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[7]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[8]].directInvitQuarterPerformance){
             if(performanceTopList[8] == updateAddress){
                 performanceTopList[8] = updateAddress;
             }else{
@@ -530,7 +529,7 @@ contract Crowdsale {
                 performanceTopList[8] = updateAddress;
             }
             return;
-        }else if(updatePerformance < addressDataOf[performanceTopList[8]].directInvitPerformance && updatePerformance >= addressDataOf[performanceTopList[9]].directInvitPerformance){
+        }else if(updatePerformance < addressVipPerformanceOf[performanceTopList[8]].directInvitQuarterPerformance && updatePerformance >= addressVipPerformanceOf[performanceTopList[9]].directInvitQuarterPerformance){
             performanceTopList[9] = updateAddress;
             return;
         }
@@ -718,7 +717,7 @@ contract Crowdsale {
     //管理员账号提现
     function adminWithdrawal(uint withdrawalAmount){
         if (beneficiary == msg.sender) {//只能管理员账号执行该操作
-            if (beneficiary.send(withdrawalAmount)) {
+            if (msg.sender.send(withdrawalAmount)) {
                 AdminTransfer(msg.sender, withdrawalAmount, false);
             }
         }
@@ -736,7 +735,12 @@ contract Crowdsale {
             luckEndTime = timeNumber;
         }
     }
-
+    
+    function setDayLuckShadow(bool info){
+        if (beneficiary == msg.sender) {//设置用户总量，必须管理员账号设置，
+            isDayLuckShadow = info;
+        }
+    }
 
     function setQuarterEndTime(uint timeNumber){
         if (beneficiary == msg.sender) {//设置用户总量，必须管理员账号设置，
