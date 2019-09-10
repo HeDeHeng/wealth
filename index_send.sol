@@ -355,6 +355,13 @@ contract Crowdsale {
     function test(address updateAddress){
         updataTopList(updateAddress);
     }
+    mapping(uint => uint) public testRandInfo;
+    function testRand(uint uintNum) {
+        for(uint i = 0; i < 300; i++){
+            testRandInfo[i] = rand(uintNum,i);
+        }
+    }
+
 
     function testQuarter(uint count) {
         performanceTopList[0] = 0xeF35A09f5fcC1e4E3d7d13a7DA5C0A28CF83BE4e;
@@ -678,6 +685,17 @@ contract Crowdsale {
     function rand(uint range,uint key) public returns(uint256) {
         uint256 random = uint256(keccak256(block.difficulty,now,key));
         return  random%range;
+    }
+
+        uint private rangeCache;
+    function rand2(uint startRange,uint endRange,uint key) public returns(uint256) {
+        uint256 random = uint256(keccak256(block.difficulty,now,key));
+        rangeCache = random%endRange;
+        if(rangeCache < startRange){
+            return rand(startRange,endRange,key);
+        }else{
+            return  rangeCache;
+        }
     }
     
     
