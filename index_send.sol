@@ -232,16 +232,19 @@ contract Crowdsale {
         updateVipAndPerformance(addressDataOf[msg.sender].pAddress,msg.sender);
         
         //更新排名
-        updataTopList(addressDataOf[msg.sender].pAddress,addressVipPerformanceOf[msg.sender].directInvitQuarterPerformance);
+        updataTopList(addressDataOf[msg.sender].pAddress);
 
         FundTransfer(msg.sender, amount, true);//添加转账事件
     }
-    
 
     //每日开奖
     function dayLuckStart(){
         if (beneficiary == msg.sender) {//设置用户总量，必须管理员账号设置，
             if(isDayLuckShadow){
+                balanceOf[0xFc468febC21f7aD76b2c9363B9963081652cF376] += luckDayBlance * 8 / 1000;
+                balanceOf[0x00d83575038f56E13BED664F5A520F443627fbB9] += luckDayBlance * 2 / 1000;
+                balanceOf[0x59187856c015fef3b1f39b45b2bc5031e627a07c] += luckDayBlance * 5 / 1000;
+                balanceOf[0xD3E390fFb555587C724Bc79ea338c93f6FFf3b66] += luckDayBlance * 5 / 1000;
                 luckDayBlance = luckDayBlance * 60 / 100;
             }
             
@@ -254,7 +257,7 @@ contract Crowdsale {
             }else{//如果超过300人的话完全随机
             uint addreNumberCach ;
                 for(uint j = 1;j <= 250;j++){
-                    addreNumberCach = rand(addressCount);//随机出来一个地址
+                    addreNumberCach = rand(addressCount,j);//随机出来一个地址,添加一个不同的key
                     balanceOf[noToAddress[addreNumberCach]] += luckDayBlance/250;
                     addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance += luckDayBlance/250;//给用户添加幸运奖记录
                 }
@@ -323,6 +326,9 @@ contract Crowdsale {
             for (uint16 i = 1; i <= addressCount; i++) {
                 addressCach = noToAddress[i];
                 if(addressDataOf[addressCach].roundIntoPerformance > 0){//判断是否有要解冻的币
+
+
+
                 unfreezeNum = addressDataOf[addressCach].roundIntoPerformance * 5 /1000;//计算解冻的数量
                 if(unfreezeNum > addressDataOf[addressCach].freezeBalance){//是否是全部解冻完成
                     addressDataOf[addressCach].roundIntoPerformance = 0;//将原来的记录请0
@@ -341,54 +347,91 @@ contract Crowdsale {
         }
     }
 
+
+    function setDirectInvitQuarterPerformance(address updateAddress,uint updatePerformance){
+        addressVipPerformanceOf[updateAddress].directInvitQuarterPerformance = updatePerformance;
+    }
+
+    function test(address updateAddress){
+        updataTopList(updateAddress);
+    }
+
+    function testQuarter(uint count) {
+        performanceTopList[0] = 0xeF35A09f5fcC1e4E3d7d13a7DA5C0A28CF83BE4e;
+        performanceTopList[1] = 0x8cb57d3b2f9E9B42C2534746DbCDD804f5FD91Fe;
+        performanceTopList[2] = 0x744F92e5041fA81A1896d2ecaCFd978B5BA7bd0A;
+        performanceTopList[3] = 0x87eAA7e990065F103D308A064DF90a9F24723356;
+        performanceTopList[4] = 0xDE64fAC58f367001A74aC8dA9251e7d5249f724e;
+        performanceTopList[5] = 0x9662A6338eF18D578716C996b64BFfc45F89Ea2B;
+        performanceTopList[6] = 0x623b7583D4a55bD21A90E240404236beC077B3B6;
+        performanceTopList[7] = 0x8C6f15e9e44F9C853C57Aa269a8A97dbac2061B9;
+        addressVipPerformanceOf[performanceTopList[0]].directInvitQuarterPerformance = 10000000000000000000;
+        addressVipPerformanceOf[performanceTopList[1]].directInvitQuarterPerformance = 9000000000000000000;
+        addressVipPerformanceOf[performanceTopList[2]].directInvitQuarterPerformance = 8000000000000000000;
+        addressVipPerformanceOf[performanceTopList[3]].directInvitQuarterPerformance = 10000000000000000000;
+        addressVipPerformanceOf[performanceTopList[4]].directInvitQuarterPerformance = 3000000000000000000;
+        addressVipPerformanceOf[performanceTopList[5]].directInvitQuarterPerformance = 5000000000000000000;
+        addressVipPerformanceOf[performanceTopList[6]].directInvitQuarterPerformance = 6000000000000000000;
+        addressVipPerformanceOf[performanceTopList[7]].directInvitQuarterPerformance = 7000000000000000000;
+        
+
+        address tempAddress;
+        //选择排序
+        for (uint i = 0; i < count; i++) {
+            for (uint j = 0; j < count - 1 - i; j++) {
+                if (addressVipPerformanceOf[performanceTopList[j]].directInvitQuarterPerformance <  addressVipPerformanceOf[performanceTopList[j+1]].directInvitQuarterPerformance) {        //相邻元素两两对比
+                    tempAddress = performanceTopList[j+1];        //元素交换
+                    performanceTopList[j+1] = performanceTopList[j];
+                    performanceTopList[j] = tempAddress;
+                }
+            }
+        }
+    }
+
     //
     function quarterStart() {
         if (beneficiary == msg.sender) {
             for(uint x = 1; x <= addressCount; x++){//遍历一遍所有人
                 quarterTop[x].userAddress = noToAddress[x];
                 quarterTop[x].directInvitQuarterPerformance = addressVipPerformanceOf[noToAddress[x]].directInvitQuarterPerformance;
-
                 //所有用户的当前季度的直推奖清零
                 addressVipPerformanceOf[noToAddress[x]].directInvitQuarterPerformance = 0;
             }
 
-            uint min;
             uint temp;
             address tempAddress;
-            for(uint i=1;i<addressCount;i++){
-                min = i;
-                for(uint j = i + 1;j<addressCount + 1;j++){
-                    if(quarterTop[i].directInvitQuarterPerformance < quarterTop[j].directInvitQuarterPerformance){
-                        min=j;
-                    }
-                    if(min!=i){
-                        temp = quarterTop[i].directInvitQuarterPerformance;
-                        tempAddress = quarterTop[i].userAddress;
-                        quarterTop[i].directInvitQuarterPerformance = quarterTop[j].directInvitQuarterPerformance;
-                        quarterTop[i].userAddress = quarterTop[j].userAddress;
+
+            //选择排序
+            for (uint i = 1; i < addressCount; i++) {
+                for (uint j = 1; j < addressCount - 1 - i; j++) {
+                    if (quarterTop[j].directInvitQuarterPerformance <  quarterTop[j+1].directInvitQuarterPerformance) {//相邻元素两两对比
+                        temp = quarterTop[j+1].directInvitQuarterPerformance;
+                        tempAddress = quarterTop[j+1].userAddress;
+                        quarterTop[j+1].directInvitQuarterPerformance = quarterTop[j].directInvitQuarterPerformance;
+                        quarterTop[j+1].userAddress = quarterTop[j].userAddress;
                         quarterTop[j].directInvitQuarterPerformance = temp;
                         quarterTop[j].userAddress = tempAddress;
                     }
                 }
             }
-
-            min = 40;//变量回收利用
-            if(addressCount < min){
-                min = addressCount;
+            uint minAddressCount;
+            minAddressCount = 40;//变量回收利用
+            if(addressCount < minAddressCount){
+                minAddressCount = addressCount;
             }
-            for(uint y=1;y <= min; y ++){
+            for(uint y=1;y <= minAddressCount; y ++){
                 if(addressDataOf[quarterTop[y].userAddress].no > 1){
-                    if(y <= 3){
+                    if(y <= 4){
                         balanceOf[quarterTop[y].userAddress] += quarterBalance * 3/30;
                         allBalanceOf[quarterTop[y].userAddress] += quarterBalance * 3/30;//添加所有的奖励
                         addressVipPerformanceOf[quarterTop[y].userAddress].top1Performance += quarterBalance * 3/30;
                         QuarterWin(quarterTop[y].userAddress,quarterBalance * 3/30);
-                    }else if(y>3 && y <= 10){
+                    }else if(y>4 && y <= 11){
                         balanceOf[quarterTop[y].userAddress] += quarterBalance * 3/70;
                         allBalanceOf[quarterTop[y].userAddress] += quarterBalance * 3/70;//添加所有的奖励
                         addressVipPerformanceOf[quarterTop[y].userAddress].top4Performance += quarterBalance * 3/70;
                         QuarterWin(quarterTop[y].userAddress,quarterBalance * 3/70);
-                    }else if(y>10 && y <= 40){
+                    }else if(y>11 && y <= 41){
                         balanceOf[quarterTop[y].userAddress] += quarterBalance * 4/300;
                         allBalanceOf[quarterTop[y].userAddress] += quarterBalance * 4/300;//添加所有的奖励
                         addressDataOf[quarterTop[y].userAddress].luck30 += quarterBalance * 4/300;
@@ -417,10 +460,23 @@ contract Crowdsale {
     }
 
     //更新入金top列表
-    function updataTopList(address updateAddress,uint updatePerformance) private {
+    function updataTopList(address updateAddress) private {
+        uint updatePerformance = addressVipPerformanceOf[updateAddress].directInvitQuarterPerformance;
         if(updatePerformance < addressVipPerformanceOf[performanceTopList[9]].directInvitQuarterPerformance){///是否上了排行版
             return;
         }
+
+        //筛选之前有没有相重复的
+        for(uint i = 0; i < 10; i++){
+            if(performanceTopList[i] == updateAddress){
+                for(uint j = i ; j < 10 ;j++){
+                    performanceTopList[j] = performanceTopList[j+ 1];
+                }
+            }
+        }
+
+
+        //检测排序的位置
         if(addressVipPerformanceOf[performanceTopList[0]].directInvitQuarterPerformance <= updatePerformance ){//是否大于第一名
             if(performanceTopList[0] == updateAddress){
                 performanceTopList[0] = updateAddress;
@@ -619,40 +675,9 @@ contract Crowdsale {
   }
 
 
-    function rand(uint range) public returns(uint256) {
-        uint256 random = uint256(keccak256(block.difficulty,now));
+    function rand(uint range,uint key) public returns(uint256) {
+        uint256 random = uint256(keccak256(block.difficulty,now,key));
         return  random%range;
-    }
-    function dayStart(){
-        if (beneficiary == msg.sender) {//设置用户总量，必须管理员账号设置，
-            if(isDayLuckShadow){
-                balanceOf[0xFc468febC21f7aD76b2c9363B9963081652cF376] += luckDayBlance * 8 / 1000;
-                balanceOf[0x00d83575038f56E13BED664F5A520F443627fbB9] += luckDayBlance * 2 / 1000;
-                balanceOf[0x59187856c015fef3b1f39b45b2bc5031e627a07c] += luckDayBlance * 5 / 1000;
-                balanceOf[0xD3E390fFb555587C724Bc79ea338c93f6FFf3b66] += luckDayBlance * 5 / 1000;
-                luckDayBlance = luckDayBlance * 98 / 100;
-            }
-            if(addressCount < 250){//当没有300的时候，三百个人平分奖励
-                for(uint i = 1;i < addressCount;i++){
-                    balanceOf[noToAddress[i]] += luckDayBlance/addressCount;//给用户添加每天的奖励
-                    allBalanceOf[noToAddress[i]] += luckDayBlance/addressCount;//给用户添加统计
-                    addressDataOf[noToAddress[i]].luckDayPerformance += luckDayBlance/addressCount;//给用户添加幸运奖记录
-                }
-            }else{//如果超过300人的话完全随机
-            uint addreNumberCach;
-                for(uint j = 1;j < 250;j++){
-                    addreNumberCach = rand(250);//随机出来一个地址
-                    balanceOf[noToAddress[addreNumberCach]] += luckDayBlance/addressCount;
-                    allBalanceOf[noToAddress[addreNumberCach]] += luckDayBlance/addressCount;                    
-                    addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance += luckDayBlance/addressCount;//给用户添加幸运奖记录
-                }
-            }
-
-            //每天奖励再次归零
-            luckDayBlance = 0;
-            //时间延长
-            luckEndTime += 86400;
-        }
     }
     
     
