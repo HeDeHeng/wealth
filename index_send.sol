@@ -122,7 +122,7 @@ contract Crowdsale {
             uint littleVip2Performance;//小区的业绩
             uint littleVip3Performance;//小区的业绩
             uint littleVip4Performance;//小区的业绩
-            uint topPerformance;//大区的业绩
+            uint topPerformance;//大区的业绩（暂时无用，为了不影响前端，暂时保留）
             uint vipPerformance;  // VIP的业绩
             uint top1Performance; // 委托的投票代表
             uint top4Performance;   // 投票选择的提案索引号
@@ -430,9 +430,10 @@ contract Crowdsale {
                     }
                 }
 
-                                //所有用户的当前季度的直推奖清零
+                //所有用户的当前季度的直推奖清零
                 addressVipPerformanceOf[noToAddress[y]].directInvitQuarterPerformance = 0;
             }
+
             //季度奖励归零
             quarterBalance=0;
             quarterEndTime += 864000;
@@ -587,12 +588,8 @@ contract Crowdsale {
 
     //升级更新用户大校区的业绩
     function updateVipAndPerformance(address pAddress,address myAddress) private {
-        //更新最大的业绩
-        if(addressDataOf[myAddress].performance > addressVipPerformanceOf[pAddress].topPerformance){
-            addressVipPerformanceOf[pAddress].topPerformance = addressDataOf[myAddress].performance;
-        }
         //更新四个等级的的小区业绩
-        //vip1
+        //vip1（大于最低条件，并且）
         if(addressDataOf[myAddress].performance >= vip1Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip1Performance){
             addressVipPerformanceOf[pAddress].littleVip1Performance = addressDataOf[myAddress].performance;
         }
