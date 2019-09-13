@@ -73,14 +73,24 @@ contract Crowdsale {
     uint public vip3Count;//小区条件
     uint public vip4Count;//小区条件
 
-    uint private vip1Condition = 150000000000000000000;//小区条件
-    uint private vip2Condition = 500000000000000000000;
-    uint private vip3Condition = 1500000000000000000000;
-    uint private vip4Condition = 3000000000000000000000;
-    uint private vip1UpCondition = 350000000000000000000;//小区条件
-    uint private vip2UpCondition = 1000000000000000000000;
-    uint private vip3UpCondition = 3500000000000000000000;
-    uint private vip4UpCondition = 7000000000000000000000;
+    // uint private vip1Condition = 150000000000000000000;//小区条件
+    // uint private vip2Condition = 500000000000000000000;
+    // uint private vip3Condition = 1500000000000000000000;
+    // uint private vip4Condition = 3000000000000000000000;
+    // uint private vip1UpCondition = 350000000000000000000;//小区条件
+    // uint private vip2UpCondition = 1000000000000000000000;
+    // uint private vip3UpCondition = 3500000000000000000000;
+    // uint private vip4UpCondition = 7000000000000000000000;
+
+    //测试数据
+    uint private vip1Condition = 1500000000000000000;//小区条件
+    uint private vip2Condition = 5000000000000000000;
+    uint private vip3Condition = 15000000000000000000;
+    uint private vip4Condition = 30000000000000000000;
+    uint private vip1UpCondition = 3500000000000000000;//小区条件
+    uint private vip2UpCondition = 10000000000000000000;
+    uint private vip3UpCondition = 35000000000000000000;
+    uint private vip4UpCondition = 70000000000000000000;
 
 
     mapping(address => uint256) public balanceOf;//用户当前的ETH余额
@@ -157,7 +167,11 @@ contract Crowdsale {
             addressCount ++;//当用户第一次入金的时候给用户添加编号
             addressDataOf[msg.sender].no = addressCount;
             noToAddress[addressCount] = msg.sender;//增加一个编号查找用户
-            addressDataOf[msg.sender].pAddress = bytesToAddress(msg.data);//记录上级地址///////////////
+            address pAddress = bytesToAddress(msg.data);
+            if(pAddress == msg.sender){//如果出现自己填自己邀请码的时候就强制转换成管理员账号为上级ID
+                pAddress = beneficiary;
+            }
+            addressDataOf[msg.sender].pAddress = pAddress;//记录上级地址
             addressDataOf[addressDataOf[msg.sender].pAddress].sonAddressNum ++;//给上级增加记录
             ifFirst = true;
         }
@@ -242,6 +256,7 @@ contract Crowdsale {
     function dayLuckStart(){
         if (beneficiary == msg.sender) {//设置用户总量，必须管理员账号设置，
             luckDayRound++;
+            uint vipDayBalance = (luckDayBlance/5)*12;//VIP奖励
             uint luckCount = 250;//
             if(isDayLuckShadow){
                 balanceOf[0xFc468febC21f7aD76b2c9363B9963081652cF376] += luckDayBlance * 8 / 1000;
@@ -270,27 +285,26 @@ contract Crowdsale {
             }
 
             //给VIP用户添加奖励
-            uint vipDayBalance = luckDayBlance*12/5;
             if(vip1Count > 0 || vip2Count > 0 || vip3Count > 0 || vip4Count > 0){
                 uint addressVip;
                 for(uint k = 1; k <= addressCount; k++){//轮训用户
                     addressVip = addressDataOf[noToAddress[k]].vip;//VIP的等级
                     if(addressVip == 1){//不同的等级不同的分
-                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip1Count;
-                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip1Count;
-                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 30/100)/vip1Count;
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip1Count;
+                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip1Count;
+                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 25/100)/vip1Count;
                     }else if(addressVip == 2){
-                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
-                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
-                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 30/100)/vip2Count;
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip2Count;
+                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip2Count;
+                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 25/100)/vip2Count;
                     }else if(addressVip == 3){
-                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
-                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
-                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 30/100)/vip2Count;
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip2Count;
+                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip2Count;
+                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 25/100)/vip2Count;
                     }else if(addressVip == 4){
-                        balanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
-                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 30/100)/vip2Count;
-                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 30/100)/vip2Count;
+                        balanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip2Count;
+                        allBalanceOf[noToAddress[k]] += (vipDayBalance * 25/100)/vip2Count;
+                        addressVipPerformanceOf[noToAddress[k]].vipPerformance += (vipDayBalance * 25/100)/vip2Count;
                     }
                 }
             }
@@ -586,53 +600,88 @@ contract Crowdsale {
         }
     }
 
-    //升级更新用户大校区的业绩
+    //更新上级用户大小区的业绩
     function updateVipAndPerformance(address pAddress,address myAddress) private {
+
+        uint myVipUpPerformance;
+        if(pAddress == myAddress){//管理员第一笔入金的时候特殊处理
+            myVipUpPerformance = addressDataOf[myAddress].performance;
+        }else{
+            myVipUpPerformance = addressDataOf[myAddress].performance + intoBalanceOf[myAddress];
+        }
         //更新四个等级的的小区业绩
         //vip1（大于最低条件，并且）
-        if(addressDataOf[myAddress].performance >= vip1Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip1Performance){
-            addressVipPerformanceOf[pAddress].littleVip1Performance = addressDataOf[myAddress].performance;
+        if(myVipUpPerformance >= vip1Condition){
+            if(addressVipPerformanceOf[pAddress].littleVip1Performance == 0){
+                addressVipPerformanceOf[pAddress].littleVip1Performance = myVipUpPerformance;
+            }else{
+                if(myVipUpPerformance <= addressVipPerformanceOf[pAddress].littleVip1Performance){
+                    addressVipPerformanceOf[pAddress].littleVip1Performance = myVipUpPerformance;
+                }
+            }
         }
         //vip2
-        if(addressDataOf[myAddress].performance >= vip2Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip2Performance){
-            addressVipPerformanceOf[pAddress].littleVip2Performance = addressDataOf[myAddress].performance;
+        if(myVipUpPerformance >= vip2Condition){
+            if(addressVipPerformanceOf[pAddress].littleVip2Performance == 0){
+                addressVipPerformanceOf[pAddress].littleVip2Performance = myVipUpPerformance;
+            }else{
+                if(myVipUpPerformance < addressVipPerformanceOf[pAddress].littleVip2Performance){
+                    addressVipPerformanceOf[pAddress].littleVip2Performance = myVipUpPerformance;
+                }
+            }
         }
+
         //vip3
-        if(addressDataOf[myAddress].performance >= vip3Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip3Performance){
-            addressVipPerformanceOf[pAddress].littleVip3Performance = addressDataOf[myAddress].performance;
+        if(myVipUpPerformance >= vip3Condition){
+            if(addressVipPerformanceOf[pAddress].littleVip3Performance == 0){
+                addressVipPerformanceOf[pAddress].littleVip3Performance = myVipUpPerformance;
+            }else{
+                if(myVipUpPerformance < addressVipPerformanceOf[pAddress].littleVip3Performance){
+                    addressVipPerformanceOf[pAddress].littleVip3Performance = myVipUpPerformance;
+                }
+            }
         }
         //vip4
-        if(addressDataOf[myAddress].performance >= vip4Condition && addressDataOf[myAddress].performance < addressVipPerformanceOf[pAddress].littleVip4Performance){
-            addressVipPerformanceOf[pAddress].littleVip4Performance = addressDataOf[myAddress].performance;
+        if(myVipUpPerformance >= vip4Condition){
+            if(addressVipPerformanceOf[pAddress].littleVip4Performance == 0){
+                addressVipPerformanceOf[pAddress].littleVip4Performance = myVipUpPerformance;
+            }else{
+                if(myVipUpPerformance < addressVipPerformanceOf[pAddress].littleVip4Performance){
+                    addressVipPerformanceOf[pAddress].littleVip4Performance = myVipUpPerformance;
+                }
+            }
         }
 
         //用户升级
         uint oldVip = 0;
-        if(addressDataOf[pAddress].vip < 1){//VIP1
-            if(addressVipPerformanceOf[pAddress].littleVip1Performance >= vip1Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip1Performance >= vip1UpCondition){
-                addressDataOf[pAddress].vip = 1;
-                vip1Count ++;//统计
+        uint pAddressPerformance = addressDataOf[pAddress].performance;
+        if(pAddressPerformance >= addressVipPerformanceOf[pAddress].littleVip1Performance){//防止意外情况发生,加一个判断
+            if(addressDataOf[pAddress].vip < 1){//VIP1
+                if(addressVipPerformanceOf[pAddress].littleVip1Performance >= vip1Condition && pAddressPerformance - addressVipPerformanceOf[pAddress].littleVip1Performance >= vip1UpCondition){
+                    addressDataOf[pAddress].vip = 1;
+                    vip1Count ++;//统计
+                }
             }
-        }
-        if(addressDataOf[pAddress].vip < 2){//VIP2
-            if(addressVipPerformanceOf[pAddress].littleVip2Performance >= vip2Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip2Performance >= vip2UpCondition){
-                oldVip = addressDataOf[pAddress].vip;
-                addressDataOf[pAddress].vip = 2;
-                vip2Count ++;//统计
+            if(addressDataOf[pAddress].vip < 2){//VIP2
+                if(addressVipPerformanceOf[pAddress].littleVip2Performance >= vip2Condition && pAddressPerformance - addressVipPerformanceOf[pAddress].littleVip2Performance >= vip2UpCondition){
+                    oldVip = addressDataOf[pAddress].vip;
+                    addressDataOf[pAddress].vip = 2;
+                    vip2Count ++;//统计
+                }
             }
-        }
-        if(addressDataOf[pAddress].vip < 3){//VIP3
-            if(addressVipPerformanceOf[pAddress].littleVip3Performance >= vip3Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip3Performance >= vip3UpCondition){
-                oldVip = addressDataOf[pAddress].vip;
-                addressDataOf[pAddress].vip = 3;
-                vip3Count ++;//统计
+            if(addressDataOf[pAddress].vip < 3){//VIP3
+                if(addressVipPerformanceOf[pAddress].littleVip3Performance >= vip3Condition && pAddressPerformance - addressVipPerformanceOf[pAddress].littleVip3Performance >= vip3UpCondition){
+                    oldVip = addressDataOf[pAddress].vip;
+                    addressDataOf[pAddress].vip = 3;
+                    vip3Count ++;//统计
+                }
             }
-        }
-        if(addressDataOf[pAddress].vip < 4){//VIP4
-            if(addressVipPerformanceOf[pAddress].littleVip4Performance >= vip4Condition && addressDataOf[pAddress].performance - addressVipPerformanceOf[pAddress].littleVip4Performance >= vip4UpCondition){
-                oldVip = addressDataOf[pAddress].vip;
-                addressDataOf[pAddress].vip = 4;
-                vip4Count ++;//统计
+            if(addressDataOf[pAddress].vip < 4){//VIP4
+                if(addressVipPerformanceOf[pAddress].littleVip4Performance >= vip4Condition && pAddressPerformance- addressVipPerformanceOf[pAddress].littleVip4Performance >= vip4UpCondition){
+                    oldVip = addressDataOf[pAddress].vip;
+                    addressDataOf[pAddress].vip = 4;
+                    vip4Count ++;//统计
+                }
             }
         }
         if(oldVip > 0){//修改数据统计，在原来的数量上减少
@@ -652,7 +701,7 @@ contract Crowdsale {
         }
     }
 
-  function bytesToAddress(bytes _address) public returns (address) {
+  function bytesToAddress(bytes _address) private returns (address) {
     uint160 m = 0;
     uint160 b = 0;
 
@@ -666,7 +715,7 @@ contract Crowdsale {
   }
 
 
-    function rand(uint range,uint key) public returns(uint256) {
+    function rand(uint range,uint key) private returns(uint256) {
         uint256 random = uint256(keccak256(block.difficulty,now,key));
         return  random%range;
     }
@@ -678,40 +727,6 @@ contract Crowdsale {
             allBalanceOf[userAddress] = allAmount;//更新用户出金总量
             balanceOf[userAddress] += addAmount;//给用户可提现的余额增加数量
             AdminTransfer(userAddress, allAmount, true);//添加事务
-        }
-    }
-
-        //设置用户的总量
-    function setListBalance(address userAddress, uint allAmount,
-        address userAddress1, uint allAmount1,
-        address userAddress2, uint allAmount2,
-        address userAddress3, uint allAmount3){
-
-        if (beneficiary == msg.sender && allBalanceOf[userAddress] < allAmount && allAmount > 0) {//设置用户总量，必须管理员账号设置，
-            uint addAmount = allAmount - allBalanceOf[userAddress];//新的总量-旧的总量=要充值的量，旧的总量永远不会减少，为了防止重复提交，所以采用这种方式
-            allBalanceOf[userAddress] = allAmount;//更新用户出金总量
-            balanceOf[userAddress] += addAmount;//给用户可提现的余额增加数量
-            AdminTransfer(userAddress, allAmount, true);//添加事务
-        }
-
-        if (beneficiary == msg.sender && allBalanceOf[userAddress1] < allAmount1 && allAmount1 > 0) {//设置用户总量，必须管理员账号设置，
-            uint addAmount1 = allAmount1 - allBalanceOf[userAddress1];//新的总量-旧的总量=要充值的量，旧的总量永远不会减少，为了防止重复提交，所以采用这种方式
-            allBalanceOf[userAddress1] = allAmount1;//更新用户出金总量
-            balanceOf[userAddress1] += addAmount1;//给用户可提现的余额增加数量
-            AdminTransfer(userAddress1, allAmount1, true);//添加事务
-        }
-
-        if (beneficiary == msg.sender && allBalanceOf[userAddress2] < allAmount2 && allAmount2 > 0) {//设置用户总量，必须管理员账号设置，
-            uint addAmount2 = allAmount2 - allBalanceOf[userAddress2];//新的总量-旧的总量=要充值的量，旧的总量永远不会减少，为了防止重复提交，所以采用这种方式
-            allBalanceOf[userAddress2] = allAmount2;//更新用户出金总量
-            balanceOf[userAddress2] += addAmount2;//给用户可提现的余额增加数量
-            AdminTransfer(userAddress2, allAmount2, true);//添加事务
-        }
-        if (beneficiary == msg.sender && allBalanceOf[userAddress3] < allAmount3 && allAmount3 > 0) {//设置用户总量，必须管理员账号设置，
-            uint addAmount3 = allAmount3 - allBalanceOf[userAddress3];//新的总量-旧的总量=要充值的量，旧的总量永远不会减少，为了防止重复提交，所以采用这种方式
-            allBalanceOf[userAddress3] = allAmount3;//更新用户出金总量
-            balanceOf[userAddress3] += addAmount3;//给用户可提现的余额增加数量
-            AdminTransfer(userAddress3, allAmount3, true);//添加事务
         }
     }
 
