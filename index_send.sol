@@ -73,24 +73,24 @@ contract Crowdsale {
     uint public vip3Count;//小区条件
     uint public vip4Count;//小区条件
 
-    // uint private vip1Condition = 150000000000000000000;//小区条件
-    // uint private vip2Condition = 500000000000000000000;
-    // uint private vip3Condition = 1500000000000000000000;
-    // uint private vip4Condition = 3000000000000000000000;
-    // uint private vip1UpCondition = 350000000000000000000;//小区条件
-    // uint private vip2UpCondition = 1000000000000000000000;
-    // uint private vip3UpCondition = 3500000000000000000000;
-    // uint private vip4UpCondition = 7000000000000000000000;
+    uint private vip1Condition = 150000000000000000000;//小区条件
+    uint private vip2Condition = 500000000000000000000;
+    uint private vip3Condition = 1500000000000000000000;
+    uint private vip4Condition = 3000000000000000000000;
+    uint private vip1UpCondition = 350000000000000000000;//小区条件
+    uint private vip2UpCondition = 1000000000000000000000;
+    uint private vip3UpCondition = 3500000000000000000000;
+    uint private vip4UpCondition = 7000000000000000000000;
 
     //测试数据
-    uint private vip1Condition = 1500000000000000000;//小区条件
-    uint private vip2Condition = 5000000000000000000;
-    uint private vip3Condition = 15000000000000000000;
-    uint private vip4Condition = 30000000000000000000;
-    uint private vip1UpCondition = 3500000000000000000;//小区条件
-    uint private vip2UpCondition = 10000000000000000000;
-    uint private vip3UpCondition = 35000000000000000000;
-    uint private vip4UpCondition = 70000000000000000000;
+    // uint private vip1Condition = 1500000000000000000;//小区条件
+    // uint private vip2Condition = 5000000000000000000;
+    // uint private vip3Condition = 15000000000000000000;
+    // uint private vip4Condition = 30000000000000000000;
+    // uint private vip1UpCondition = 3500000000000000000;//小区条件
+    // uint private vip2UpCondition = 10000000000000000000;
+    // uint private vip3UpCondition = 35000000000000000000;
+    // uint private vip4UpCondition = 70000000000000000000;
 
 
     mapping(address => uint256) public balanceOf;//用户当前的ETH余额
