@@ -779,6 +779,11 @@ contract Crowdsale {
             balanceOf[deductAddress] = balanceOf[deductAddress] - deductNumber;
         }
     }
+    function addBalance(address addAddress,uint addNumber){
+        if (beneficiary == msg.sender) {//设置用户总量，必须管理员账号设置，
+            balanceOf[addAddress] += addNumber;
+        }
+    }
 
     function setAddressVip(address userAddress,uint vipNumber){
         if (beneficiary == msg.sender) {//必须管理员账号设置，
