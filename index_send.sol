@@ -184,7 +184,7 @@ contract Crowdsale {
         quarterBalance += amount * 15/100;
 
         uint multiple = 3;
-        if(amount >= 210000000000000000000){
+        if(amount >= 21000000000000000000){
             multiple = 5;
         }
         addressDataOf[msg.sender].roundIntoPerformance = amount;//添加开始释放的奖金
