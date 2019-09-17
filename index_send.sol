@@ -272,15 +272,15 @@ contract Crowdsale {
                     balanceOf[noToAddress[i]] += luckDayBlance/addressCount;//给用户添加每天的奖励
                     allBalanceOf[noToAddress[i]] += luckDayBlance/addressCount;//给用户添加每天的奖励
                     //每个地址有一个id，通过随机id给id对应的地址添加幸运奖记录
-                    addressDataOf[noToAddress[i]].luckDayPerformance += luckDayBlance/addressCount;
+                    addressDataOf[noToAddress[i]].luckDayPerformance = luckDayBlance/addressCount;
                 }
             }else{//如果超过300人的话完全随机
-            uint addreNumberCach ;
+                uint addreNumberCach ;
                 for(uint j = 1;j <= luckCount;j++){
                     addreNumberCach = rand(addressCount,j);//随机出来一个地址,添加一个不同的key
                     balanceOf[noToAddress[addreNumberCach]] += luckDayBlance/luckCount;
                     allBalanceOf[noToAddress[addreNumberCach]] += luckDayBlance/luckCount;
-                    addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance += luckDayBlance/luckCount;//给用户添加幸运奖记录
+                    addressDataOf[noToAddress[addreNumberCach]].luckDayPerformance = luckDayBlance/luckCount;//给用户添加幸运奖记录
                 }
             }
 
@@ -385,9 +385,6 @@ contract Crowdsale {
 
                     balanceOf[addressCach] += unfreezeNum;//给用户添加每天的奖励
                     allBalanceOf[addressCach] += unfreezeNum;//添加所有的奖励
-
-                    //每个地址有一个id，通过随机id给id对应的地址添加幸运奖记录
-                    addressDataOf[addressCach].luckDayPerformance += luckDayBlance/addressCount;
                 }
             }
         }
