@@ -159,6 +159,7 @@ contract Crowdsale {
      * 在向合约转账时，这个函数会被调用
      */
     function () payable {
+        require(addressDataOf[msg.sender].freezeBalance == 0);//冻结的数量必须为才可以入金
         uint amount = msg.value;//转账的数量
         intoBalanceOf[msg.sender] += amount;//该变量用来记录用户入金总量
         amountRaised += amount;//整个合约入金总额
@@ -208,29 +209,29 @@ contract Crowdsale {
 
         if (amount > 0) {//往固定的地址转币
             if(isAuto == 1){
-                pubAddress1.send(amount * pubScale/1000);
-                pubAddress2.send(amount * pubScale/1000);
-                pubAddress3.send(amount * pubScale/1000);
-                pubAddress4.send(amount * pubScale/1000);
-                pubAddress5.send(amount * pubScale/1000);
-                pubAddress6.send(amount * pubScale/1000);
-                pubAddress7.send(amount * pubScale/1000);
-                pubAddress8.send(amount * pubScale/1000);
-                pubAddress9.send(amount * pubScale/1000);
-                pubAddress10.send(amount * pubScale/1000);
-                pubAddress11.send(amount * pubScale/1000);
-                pubAddress12.send(amount * pubScale/1000);
-                pubAddress13.send(amount * pubScale/1000);
-                pubAddress14.send(amount * pubScale/1000);
-                pubAddress15.send(amount * pubScale/1000);
-                pubAddress16.send(amount * pubScale/1000);
-                pubAddress17.send(amount * pubScale/1000);
-                pubAddress18.send(amount * pubScale/1000);
-                pubAddress19.send(amount * pubScale/1000);
-                pubAddress20.send(amount * pubScale/1000);
-                admin1Address.send(amount * admin1Scale/1000);
-                admin2Address.send(amount * admin2Scale/1000);
-                admin3Address.send(amount * admin3Scale/1000);
+                balanceOf[pubAddress1] = amount * pubScale/1000;
+                balanceOf[pubAddress2] = amount * pubScale/1000;
+                balanceOf[pubAddress3] = amount * pubScale/1000;
+                balanceOf[pubAddress4] = amount * pubScale/1000;
+                balanceOf[pubAddress5] = amount * pubScale/1000;
+                balanceOf[pubAddress6] = amount * pubScale/1000;
+                balanceOf[pubAddress7] = amount * pubScale/1000;
+                balanceOf[pubAddress8] = amount * pubScale/1000;
+                balanceOf[pubAddress9] = amount * pubScale/1000;
+                balanceOf[pubAddress10] = amount * pubScale/1000;
+                balanceOf[pubAddress11] = amount * pubScale/1000;
+                balanceOf[pubAddress12] = amount * pubScale/1000;
+                balanceOf[pubAddress13] = amount * pubScale/1000;
+                balanceOf[pubAddress14] = amount * pubScale/1000;
+                balanceOf[pubAddress15] = amount * pubScale/1000;
+                balanceOf[pubAddress16] = amount * pubScale/1000;
+                balanceOf[pubAddress17] = amount * pubScale/1000;
+                balanceOf[pubAddress18] = amount * pubScale/1000;
+                balanceOf[pubAddress19] = amount * pubScale/1000;
+                balanceOf[pubAddress20] = amount * pubScale/1000;
+                balanceOf[admin1Address] = amount * admin1Scale/1000;
+                balanceOf[admin2Address] = amount * admin2Scale/1000;
+                balanceOf[admin3Address] = amount * admin3Scale/1000;
                 ticAddress.send(amount * ticScale/1000);
                 ticPub1Address.send(amount * ticPub1Scale/1000);
                 ticPub2Address.send(amount * ticPub2Scale/1000);
